@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FemCare | Period Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Setup Modal (shown only on first visit) -->
+    <div class="modal-overlay" id="setupModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Welcome to FemCare</h2>
+            <p style="text-align: center; margin-bottom: 25px; color: var(--text-light);">
+                Let's personalize your period tracking experience
+            </p>
+
+            <form class="modal-form" id="setupForm">
+                <div class="form-group">
+                    <label for="userName">Your Name</label>
+                    <input type="text" id="userName" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="userAge">Your Age</label>
+                    <input type="number" id="userAge" min="13" max="55" placeholder="Enter your age" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastPeriod">Last Period Start Date</label>
+                    <input type="date" id="lastPeriod" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cycleLength">Average Cycle Length (days)</label>
+                    <input type="number" id="cycleLength" min="21" max="45" value="28" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="periodLength">Average Period Length (days)</label>
+                    <input type="number" id="periodLength" min="2" max="10" value="5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="symptomTracking">Enable Symptom Tracking</label>
+                    <select id="symptomTracking">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="modal-btn">Start Tracking</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 20px; color: var(--text-light); font-size: 0.9rem;">
+                Your data is stored locally and won't be shared with anyone.
+            </p>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Settings</h2>
+
+            <form class="modal-form" id="settingsForm">
+                <div class="form-group">
+                    <label for="settingsUserName">Your Name</label>
+                    <input type="text" id="settingsUserName" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="settingsUserAge">Your Age</label>
+                    <input type="number" id="settingsUserAge" min="13" max="55" placeholder="Enter your age" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="settingsLastPeriod">Last Period Start Date</label>
+                    <input type="date" id="settingsLastPeriod" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="settingsCycleLength">Average Cycle Length (days)</label>
+                    <input type="number" id="settingsCycleLength" min="21" max="45" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="settingsPeriodLength">Average Period Length (days)</label>
+                    <input type="number" id="settingsPeriodLength" min="2" max="10" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="settingsSymptomTracking">Symptom Tracking</label>
+                    <select id="settingsSymptomTracking">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notificationToggle">Period Reminders</label>
+                    <select id="notificationToggle">
+                        <option value="on">On</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="themeToggle">App Theme</label>
+                    <select id="themeToggle">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="system">System Default</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="modal-btn">Save Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Log Period Modal -->
+    <div class="modal-overlay" id="logPeriodModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Log Period</h2>
+
+            <form class="modal-form" id="logPeriodForm">
+                <div class="form-group">
+                    <label for="periodStartDate">Start Date</label>
+                    <input type="date" id="periodStartDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="periodEndDate">End Date</label>
+                    <input type="date" id="periodEndDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="periodIntensity">Intensity</label>
+                    <select id="periodIntensity">
+                        <option value="light">Light</option>
+                        <option value="medium">Medium</option>
+                        <option value="heavy">Heavy</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="periodNotes">Notes (optional)</label>
+                    <textarea id="periodNotes" placeholder="Add any notes about your period" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="modal-btn">Log Period</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container" id="mainApp" style="display: none;">
+        <header>
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <h1>FemCare</h1>
+            </div>
+            <div class="nav-controls">
+                <button class="dark-mode-toggle" id="darkModeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn" id="logPeriodBtn">
+                    <i class="fas fa-plus"></i> Log Period
+                </button>
+                <button class="btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
+        </header>
+
+        <!-- Google Fit Inspired Dashboard -->
+        <div class="dashboard-overview">
+            <div class="welcome-card">
+                <div class="welcome-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="welcome-text">
+                    <h2 id="welcomeName">Welcome, Sarah!</h2>
+                    <p id="cyclePhase">Your cycle is currently in the follicular phase</p>
+                </div>
+            </div>
+
+            <div class="cycle-summary">
+                <div class="cycle-card">
+                    <div class="cycle-card-header">
+                        <div class="cycle-card-icon period">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="cycle-card-content">
+                            <h3>Period Status</h3>
+                            <p>Next period starts in</p>
+                            <div class="value" id="nextPeriod">16 days</div>
+                        </div>
+                    </div>
+                    <div class="cycle-progress">
+                        <div class="cycle-progress-bar" id="cycleProgress" style="width: 45%"></div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--text-light);">Day <span id="cycleDay">12</span> of <span id="cycleLengthDisplay">28</span> day cycle</p>
+                </div>
+
+                <div class="cycle-card">
+                    <div class="cycle-card-header">
+                        <div class="cycle-card-icon fertile">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <div class="cycle-card-content">
+                            <h3>Fertility Window</h3>
+                            <p>Chance of conception</p>
+                            <div class="value" id="fertilityStatus">High</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--text-light);">Days <span id="fertileDays">12-17</span> of your cycle</p>
+                </div>
+
+                <div class="cycle-card">
+                    <div class="cycle-card-header">
+                        <div class="cycle-card-icon ovulation">
+                            <i class="fas fa-egg"></i>
+                        </div>
+                        <div class="cycle-card-content">
+                            <h3>Ovulation</h3>
+                            <p>Predicted ovulation date</p>
+                            <div class="value" id="ovulationDate">June 14</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--text-light);">Based on your average cycle</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-title">Current Cycle Day</div>
+                <div class="stat-value" id="statCycleDay">12</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Next Period In</div>
+                <div class="stat-value" id="statNextPeriod">16 <span class="stat-unit">days</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Cycle Length</div>
+                <div class="stat-value" id="statCycleLength">28 <span class="stat-unit">days</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Period Duration</div>
+                <div class="stat-value" id="statPeriodDuration">5 <span class="stat-unit">days</span></div>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Cycle History</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cycleChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Symptom Analysis</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="symptomChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Symptom Tracker</h2>
+                <button class="btn" id="addSymptomBtn">
+                    <i class="fas fa-plus"></i> Add Custom
+                </button>
+            </div>
+
+            <div class="symptoms-grid" id="symptomsGrid">
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div>Headache</div>
+                </div>
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-tired"></i>
+                    </div>
+                    <div>Fatigue</div>
+                </div>
+
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div>Bloating</div>
+                </div>
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                    <div>Fever</div>
+                </div>
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <div>Mood Swings</div>
+                </div>
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div>Food Craving</div>
+                </div>
+                <div class="symptom-item">
+                    <div class="symptom-icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <div>Insomnia</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <h2 class="calendar-title">Cycle Calendar</h2>
+                <button class="btn" id="analyzeBtn">
+                    <i class="fas fa-chart-line"></i> Analyze
+                </button>
+            </div>
+
+            <div class="calendar-controls">
+                <div class="month-nav">
+                    <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                    <h3 class="current-month" id="currentMonth">June 2023</h3>
+                    <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div>
+                    <button class="btn" id="todayBtn">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </button>
+                </div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <div class="day-header">Sun</div>
+                <div class="day-header">Mon</div>
+                <div class="day-header">Tue</div>
+                <div class="day-header">Wed</div>
+                <div class="day-header">Thu</div>
+                <div class="day-header">Fri</div>
+                <div class="day-header">Sat</div>
+
+                <!-- Calendar days will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Settings saved successfully!</span>
+    </div>
+
+    <!-- Info Button -->
+    <div class="info-btn" id="infoBtn">
+        <i class="fas fa-info"></i>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2 class="modal-title">About FemCare</h2>
+
+            <div class="modal-section">
+                <h3 class="modal-section-title">
+                    <i class="fas fa-heart"></i>
+                    Our Mission
+                </h3>
+                <p>FemCare is designed to help women track their menstrual cycles with accuracy and ease. Our goal is to provide a comprehensive tool that empowers women to understand their bodies better and take control of their reproductive health.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3 class="modal-section-title">
+                    <i class="fas fa-star"></i>
+                    Key Features
+                </h3>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li style="margin-bottom: 8px;">Period prediction and tracking</li>
+                    <li style="margin-bottom: 8px;">Fertility window and ovulation tracking</li>
+                    <li style="margin-bottom: 8px;">Symptom and mood logging</li>
+                    <li style="margin-bottom: 8px;">Cycle history and statistics</li>
+                    <li style="margin-bottom: 8px;">Health insights and personalized tips</li>
+                    <li style="margin-bottom: 8px;">Data privacy and security</li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3 class="modal-section-title">
+                    <i class="fas fa-user"></i>
+                    About the Developer
+                </h3>
+                <p><strong>Name:</strong> Ayush Dubey</p>
+                <p><strong>GitHub:</strong> <a href="https://github.com/AyushDubey23" target="_blank" style="color: var(--primary); text-decoration: underline;">AyushDubey23</a></p>
+                <p><strong>Portfolio:</strong> <a href="https://ayushdubey23.github.io/mpw/" target="_blank" style="color: var(--primary); text-decoration: underline;">https://ayushdubey23.github.io/mpw/</a></p>
+                <p>Ayush is currently working on mobile app development and learning Android development to expand FemCare's accessibility on mobile platforms.</p>
+
+                <div class="social-links" style="display: flex; gap: 15px; margin-top: 15px;">
+                    <a href="https://github.com/AyushDubey23" target="_blank" class="social-link" style="display: inline-block; width: 45px; height: 45px; border-radius: 50%; background-color: rgba(156, 77, 204, 0.2); display: flex; justify-content: center; align-items: center; font-size: 1.3rem; transition: all 0.3s ease; color: var(--text); text-decoration: none;">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/ayush-dubey-508196331/" target="_blank" class="social-link" style="display: inline-block; width: 45px; height: 45px; border-radius: 50%; background-color: rgba(156, 77, 204, 0.2); display: flex; justify-content: center; align-items: center; font-size: 1.3rem; transition: all 0.3s ease; color: var(--text); text-decoration: none;">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="https://www.instagram.com/_ayushhdubey_/" target="_blank" class="social-link" style="display: inline-block; width: 45px; height: 45px; border-radius: 50%; background-color: rgba(156, 77, 204, 0.2); display: flex; justify-content: center; align-items: center; font-size: 1.3rem; transition: all 0.3s ease; color: var(--text); text-decoration: none;">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
